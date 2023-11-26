@@ -11,16 +11,22 @@ db = SQLAlchemy(app)
 with app.app_context():
     try:
         db.create_all()
-        x = "Connection to the database is succeeded!"
+        result = "Connection to the database is succeeded!"
 
     except Exception as e:
-        x = f"Error connecting to the database: {str(e)}"
+        result = f"Error connecting to the database: {str(e)}"
 
 
 @app.route('/')
-def hello_world():  # put application's code here
-    return x
+def hello_world():
+    return "Hello, World!"
+
+
+@app.route("/second")
+def sec():
+    return "2"
 
 
 if __name__ == '__main__':
+    print("helloo")
     app.run()
