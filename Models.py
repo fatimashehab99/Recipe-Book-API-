@@ -1,66 +1,4 @@
-from datetime import datetime
-
-from app import db, app
-
-
-class Ingredient(db.Model):
-    __tablename__ = "ingredients"
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    name = db.Column(db.String(80))
-    description = db.Column(db.String(250))
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-
-    def __init__(self, name, description):
-        self.name = name
-        self.description = description
-
-
-class Category(db.Model):
-    __tablename__ = "categories"
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    name = db.Column(db.String(80))
-    description = db.Column(db.String(250))
-    sort_number = db.Column(db.Integer, default=0)
-    is_hidden = db.Column(db.Boolean, default=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    recipes = db.relationship('Recipe', backref='categories', lazy=True)
-
-    def __init__(self, name, description):
-        self.name = name
-        self.description = description
-
-
-class Recipe(db.Model):
-    __tablename__ = "recipes"
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    name = db.Column(db.String(80))
-    description = db.Column(db.String(500))
-    procedure = db.Column(db.String(500))
-    link = db.Column(db.String(250))
-    category_id = db.Column(db.Integer, db.ForeignKey('categories.id'))
-    sort_number = db.Column(db.Integer, default=0)
-    is_hidden = db.Column(db.Boolean, default=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    ingredients = db.relationship('Ingredient', secondary='ingredient_recipe', backref='recipes')
-
-    def __init__(self, name, description, procedure, link, category_id):
-        self.name = name
-        self.description = description
-        self.procedure = procedure
-        self.link = link
-        self.category_id = category_id
-
-
-class IngredientRecipe(db.Model):
-    __tablename__ = "ingredient_recipe"
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    ingredient_id = db.Column(db.Integer, db.ForeignKey("ingredients.id"))
-    recipe_id = db.Column(db.Integer, db.ForeignKey("recipes.id"))
-
-    def __init__(self, ingredient_id, recipe_id):
-        self.ingredient_id = ingredient_id
-        self.recipe_id = recipe_id
-
+from app import db, app, Ingredient, Category, Recipe, IngredientRecipe
 
 with app.app_context():
     # creating tables' schemas
@@ -120,4 +58,3 @@ with app.app_context():
     ]
     db.session.add_all(ingredient_recipes)
     db.session.commit()
-
