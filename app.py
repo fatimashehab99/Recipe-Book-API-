@@ -19,14 +19,16 @@ with app.app_context():
 
 @app.route('/')
 def hello_world():
-    return "Hello, World!"
+    return "Hello, World ,fofof !"
 
 
 @app.route("/second")
 def sec():
-    return "2"
+    return "20"
 
 
 if __name__ == '__main__':
     print("helloo")
+    with app.app_context():
+        db.create_all()
     app.run()
