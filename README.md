@@ -6,5 +6,5 @@ app.config["SQLALCHEMY_DATABASE_URI"] = 'postgresql://postgres:root@localhost/re
 You can choose any sql database type
 2-Run python app.py in the terminal to be able to create the database schema
 3-Run python seeds.py in the terminal to create seeds(data) in the database table
-4-Try the following get APIs:
+4-Try the APIs build in the project
 
