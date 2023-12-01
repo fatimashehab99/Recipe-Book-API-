@@ -1,8 +1,6 @@
 from app import db, app, Ingredient, Category, Recipe, IngredientRecipe
 
 with app.app_context():
-    # creating tables' schemas
-    db.create_all()
     # creating seeds
     ingredients = [
         Ingredient("Black Pepper",

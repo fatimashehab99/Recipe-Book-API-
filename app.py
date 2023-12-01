@@ -1,4 +1,4 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 
@@ -10,7 +10,8 @@ app.config["SQLALCHEMY_DATABASE_URI"] = 'postgresql://postgres:root@localhost/re
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
-# check connection
+# Test your db connection
+""""
 with app.app_context():
     try:
         db.create_all()
@@ -18,6 +19,7 @@ with app.app_context():
 
     except Exception as e:
         result = f"Error connecting to the database: {str(e)}"
+"""
 
 
 # models
@@ -82,7 +84,7 @@ class IngredientRecipe(db.Model):
 
 @app.route('/')
 def hello_world():
-    return "Hello"
+    return "Hello to my Recipe Book API kindly try the APIs in the read me file and hope you will enjoy it"
 
 
 @app.route("/recipes")
@@ -189,6 +191,78 @@ def getRecipeByCategory(category):
         return message, 404
 
 
+@app.route("/recipes/ingredients/<string:ingredient>")
+def getRecipesByIngredient(ingredient):
+    ingredient = Ingredient.query.filter(Ingredient.name.ilike(f"%{ingredient}%")).first()
+    if (ingredient):
+        jsonIngredient = {
+            "ingredient_id": ingredient.id
+        }
+        recipes = Recipe.query.join(IngredientRecipe) \
+            .filter(IngredientRecipe.ingredient_id == jsonIngredient['ingredient_id'],
+                    Recipe.is_hidden == False).order_by(Recipe.sort_number).all()
+        if (recipes):
+            jsonRecipes = [{
+                "recipe_id": recipe.id,
+                "recipe_name": recipe.name,
+                "recipe_description": recipe.description,
+                "recipe_procedure": recipe.procedure,
+                "recipe_link": recipe.link,
+            } for recipe in recipes]
+            return jsonify(jsonRecipes)
+        else:
+            message = {"message": 'No Recipe Found'}
+            return message, 404
+
+    else:
+        message = {"message": "Ingredient Not Found"}
+        return message, 404
+
+
+@app.route("/recipe", methods=['POST'])
+def addRecipe():
+    data = request.get_json()
+    try:
+        recipe = Recipe(data['name'], data['description'], data['procedure'], data['link'], data['category_id'])
+        db.session.add(recipe)
+        db.session.commit()
+        message = {"message": "Recipe is added"}
+        return message, 200
+    except:
+        message = {"message": "Failed"}
+        return message, 403
+
+
+@app.route("/ingredient", methods=['POST'])
+def addIngredient():
+    data = request.get_json()
+    try:
+        ingredient = Ingredient(data['name'], data['description'])
+        db.session.add(ingredient)
+        db.session.commit()
+        message = {"message": "Ingredient is added"}
+        return message, 200
+    except:
+        message = {"message": "Failed"}
+        return message, 403
+
+
+@app.route("/recipe/ingredient", methods=['POST'])
+def addIngredientToRecipe():
+    data = request.get_json()
+    try:
+        ingredient = IngredientRecipe(data['ingredient_id'], data['recipe_id'])
+        db.session.add(ingredient)
+        db.session.commit()
+        message = {"message": "Ingredient is added"}
+        return message, 200
+    except:
+        message = {"message": "Failed"}
+        return message, 403
+
+
 if __name__ == '__main__':
-    print("helloo")
+    with app.app_context():
+        # create db schemas
+        db.create_all()
     app.run()
