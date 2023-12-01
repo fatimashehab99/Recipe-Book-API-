@@ -119,8 +119,8 @@ def getCategories():
 
 @app.route("/recipes/<int:recipe_id>")
 def getRecipeById(recipe_id):
-    try:
-        recipe = Recipe.query.filter_by(id=recipe_id, is_hidden=False).first()
+    recipe = Recipe.query.filter_by(id=recipe_id, is_hidden=False).first()
+    if (recipe):
         ingredients = Ingredient.query.join(IngredientRecipe) \
             .filter(IngredientRecipe.recipe_id == recipe_id).all()
         jsonIngredients = [{
@@ -143,8 +143,49 @@ def getRecipeById(recipe_id):
             "ingredients": jsonIngredients
         }
         return jsonify(data)
-    except SQLAlchemyError as e:
+    else:
         message = {"message": "Recipe Not Found"}
+        return message, 404
+
+
+@app.route("/recipes/ingredients/<int:ingredient_id>")
+def getIngredientById(ingredient_id):
+    ingredient = Ingredient.query.filter_by(id=ingredient_id).first()
+    if (ingredient):
+        jsonIngredient = {
+            "ingredient_id": ingredient.id,
+            "ingredient_name": ingredient.name,
+            "ingredient_description": ingredient.description
+        }
+        return jsonify(jsonIngredient)
+    else:
+        message = {"message": "Ingredient Not Found"}
+        return message, 404
+
+
+@app.route("/recipes/categories/<string:category>")
+def getRecipeByCategory(category):
+    category = Category.query.filter(Category.name.ilike(f"%{category}%"), Category.is_hidden == False) \
+        .first()
+    if (category):
+        jsonCategory = {
+            "category_id": category.id
+        }
+        recipes = Recipe.query.filter(Recipe.category_id == jsonCategory['category_id'], Category.is_hidden == False) \
+            .order_by(Category.sort_number).all()
+
+        jsonRecipes = [{
+            "recipe_id": recipe.id,
+            "recipe_name": recipe.name,
+            "recipe_description": recipe.description,
+            "recipe_procedure": recipe.procedure,
+            "recipe_link": recipe.link,
+        }
+            for recipe in recipes]
+        return jsonify(jsonRecipes)
+
+    else:
+        message = {"message": "Category Not Found"}
         return message, 404
 
 
